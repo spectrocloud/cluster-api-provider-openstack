@@ -4684,7 +4684,7 @@ spec:
       - name: cert
         secret:
           defaultMode: 420
-          secretName: $(SERVICE_NAME)-cert
+          secretName: capo-webhook-service-cert
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate

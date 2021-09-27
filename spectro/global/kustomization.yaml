@@ -57,3 +57,6 @@ patchesJson6902:
       namespace: system
       version: v1
     path: patch_service_account.yaml
+
+configurations:
+  - kustomizeconfig.yaml
