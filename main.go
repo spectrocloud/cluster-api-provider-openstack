@@ -122,7 +122,7 @@ func InitFlags(fs *pflag.FlagSet) {
 	fs.DurationVar(&syncPeriod, "sync-period", 10*time.Minute,
 		"The minimum interval at which watched resources are reconciled (e.g. 15m)")
 
-	fs.IntVar(&webhookPort, "webhook-port", 9443,
+	fs.IntVar(&webhookPort, "webhook-port", 0,
 		"Webhook Server port")
 
 	fs.StringVar(&webhookCertDir, "webhook-cert-dir", "/tmp/k8s-webhook-server/serving-certs/",
@@ -190,9 +190,12 @@ func main() {
 	// Initialize event recorder.
 	record.InitFromRecorder(mgr.GetEventRecorderFor("openstack-controller"))
 
-	setupChecks(mgr)
-	setupReconcilers(ctx, mgr)
-	setupWebhooks(mgr)
+	if webhookPort == 0 {
+		setupReconcilers(ctx, mgr)
+	} else {
+		setupChecks(mgr)
+		setupWebhooks(mgr)
+	}
 
 	// +kubebuilder:scaffold:builder
 	setupLog.Info("starting manager", "version", version.Get().String())
