@@ -79,7 +79,7 @@ endif
 
 # Release variables
 
-STAGING_REGISTRY := gcr.io/k8s-staging-capi-openstack
+STAGING_REGISTRY := gcr.io/spectro-dev-public/release
 STAGING_BUCKET ?= artifacts.k8s-staging-capi-openstack.appspot.com
 BUCKET ?= $(STAGING_BUCKET)
 PROD_REGISTRY ?= k8s.gcr.io/capi-openstack
@@ -89,14 +89,14 @@ PULL_BASE_REF ?= $(RELEASE_TAG) # PULL_BASE_REF will be provided by Prow
 RELEASE_ALIAS_TAG ?= $(PULL_BASE_REF)
 RELEASE_DIR := out
 
-TAG ?= dev
+TAG ?= 20220628
 ARCH ?= amd64
 ALL_ARCH ?= amd64 arm arm64 ppc64le s390x
 
 # main controller
 IMAGE_NAME ?= capi-openstack-controller
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
-CONTROLLER_IMG_TAG ?= $(CONTROLLER_IMG)-$(ARCH):$(TAG)
+CONTROLLER_IMG_TAG ?= $(CONTROLLER_IMG):$(TAG)
 CONTROLLER_ORIGINAL_IMG := gcr.io/k8s-staging-capi-openstack/capi-openstack-controller
 CONTROLLER_NAME := capo-controller-manager
 MANIFEST_FILE := infrastructure-components
