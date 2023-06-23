@@ -76,22 +76,26 @@ ifeq ($(PODMAN), 1)
 else
 	CONTAINERFILE ?= Dockerfile
 endif
-
+SPECTRO_VERSION ?= 4.0.0-dev
 # Release variables
+FIPS_ENABLE ?= ""
 
-STAGING_REGISTRY := gcr.io/spectro-dev-public/release
+RELEASE_LOC := release
+ifeq ($(FIPS_ENABLE),yes)
+  RELEASE_LOC := release-fips
+endif
+REGISTRY := gcr.io/spectro-dev-public/${RELEASE_LOC}
 STAGING_BUCKET ?= artifacts.k8s-staging-capi-openstack.appspot.com
 BUCKET ?= $(STAGING_BUCKET)
 PROD_REGISTRY ?= k8s.gcr.io/capi-openstack
-REGISTRY ?= $(STAGING_REGISTRY)
 RELEASE_TAG ?= $(shell git describe --abbrev=0 2>/dev/null)
 PULL_BASE_REF ?= $(RELEASE_TAG) # PULL_BASE_REF will be provided by Prow
 RELEASE_ALIAS_TAG ?= $(PULL_BASE_REF)
 RELEASE_DIR := out
 
-TAG ?= $(shell date +'%Y%m%d')
+TAG ?= v0.6.2-spectro-${SPECTRO_VERSION}
 ARCH ?= amd64
-ALL_ARCH ?= amd64 arm arm64 ppc64le s390x
+#ALL_ARCH ?= amd64 arm arm64 ppc64le s390x
 
 # main controller
 IMAGE_NAME ?= capi-openstack-controller
@@ -254,7 +258,7 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 
 .PHONY: docker-build
 docker-build: docker-pull-prerequisites ## Build the docker image for controller-manager
-	docker build -f $(CONTAINERFILE) --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg LDFLAGS="$(LDFLAGS)" . -t $(CONTROLLER_IMG_TAG)
+	docker build -f $(CONTAINERFILE) --build-arg CRYPTO_LIB=${FIPS_ENABLE} --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg LDFLAGS="$(LDFLAGS)" . -t $(CONTROLLER_IMG_TAG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
