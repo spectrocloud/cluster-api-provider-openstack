@@ -76,7 +76,7 @@ ifeq ($(PODMAN), 1)
 else
 	CONTAINERFILE ?= Dockerfile
 endif
-
+SPECTRO_VERSION ?= 4.0.0-dev
 # Release variables
 FIPS_ENABLE ?= ""
 
@@ -99,7 +99,7 @@ ARCH ?= amd64
 
 # main controller
 IMAGE_NAME ?= capi-openstack-controller
-CONTROLLER_IMG ?= $(REGISTRY)-$(ARCH)/$(IMAGE_NAME)
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 CONTROLLER_IMG_TAG ?= $(CONTROLLER_IMG):$(TAG)
 CONTROLLER_ORIGINAL_IMG := gcr.io/k8s-staging-capi-openstack/capi-openstack-controller
 CONTROLLER_NAME := capo-controller-manager
