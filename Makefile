@@ -78,17 +78,17 @@ else
 endif
 
 # Release variables
+SPECTRO_VERSION ?= 4.0.0-dev
 FIPS_ENABLE ?= ""
 
 RELEASE_LOC := release
 ifeq ($(FIPS_ENABLE),yes)
   RELEASE_LOC := release-fips
 endif
-STAGING_REGISTRY := gcr.io/spectro-dev-public/${RELEASE_LOC}
+REGISTRY := gcr.io/spectro-dev-public/${RELEASE_LOC}
 STAGING_BUCKET ?= artifacts.k8s-staging-capi-openstack.appspot.com
 BUCKET ?= $(STAGING_BUCKET)
 PROD_REGISTRY ?= k8s.gcr.io/capi-openstack
-REGISTRY ?= $(STAGING_REGISTRY)
 RELEASE_TAG ?= $(shell git describe --abbrev=0 2>/dev/null)
 PULL_BASE_REF ?= $(RELEASE_TAG) # PULL_BASE_REF will be provided by Prow
 RELEASE_ALIAS_TAG ?= $(PULL_BASE_REF)
@@ -100,7 +100,7 @@ ARCH ?= amd64
 
 # main controller
 IMAGE_NAME ?= capi-openstack-controller
-CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)-$(ARCH)
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 CONTROLLER_IMG_TAG ?= $(CONTROLLER_IMG):$(TAG)
 CONTROLLER_ORIGINAL_IMG := gcr.io/k8s-staging-capi-openstack/capi-openstack-controller
 CONTROLLER_NAME := capo-controller-manager
