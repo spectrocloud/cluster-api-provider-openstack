@@ -18,6 +18,9 @@
 FROM golang:1.19.8 as builder
 WORKDIR /workspace
 
+ARG CRYPTO_LIB
+ENV GOEXPERIMENT=${CRYPTO_LIB:+boringcrypto}
+
 # Run this with docker build --build_arg goproxy=$(go env GOPROXY) to override the goproxy
 ARG goproxy=https://proxy.golang.org
 ENV GOPROXY=$goproxy
@@ -40,11 +43,18 @@ ARG ARCH
 ARG ldflags
 
 # Do not force rebuild of up-to-date packages (do not use -a) and use the compiler cache folder
-RUN --mount=type=cache,target=/root/.cache/go-build \
+RUN if [ ${CRYPTO_LIB} ]; \
+    then \
+    --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "-linkmode=external -extldflags=-static" -a -o manager ${package}; \ 
+    else \
+    --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
-    go build -ldflags "${ldflags} -extldflags '-static'" \
-    -o manager ${package}
+    go build    -ldflags "${ldflags} -extldflags '-static'" \
+    -o manager ${package}; \
+    fi
 
 # Production image
 FROM gcr.io/distroless/static:nonroot
