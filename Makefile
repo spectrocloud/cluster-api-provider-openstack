@@ -78,8 +78,13 @@ else
 endif
 
 # Release variables
+FIPS_ENABLE ?= ""
 
-STAGING_REGISTRY := gcr.io/spectro-dev-public/release
+RELEASE_LOC := release
+ifeq ($(FIPS_ENABLE),yes)
+  RELEASE_LOC := release-fips
+endif
+STAGING_REGISTRY := gcr.io/spectro-dev-public/${RELEASE_LOC}
 STAGING_BUCKET ?= artifacts.k8s-staging-capi-openstack.appspot.com
 BUCKET ?= $(STAGING_BUCKET)
 PROD_REGISTRY ?= k8s.gcr.io/capi-openstack
@@ -89,13 +94,13 @@ PULL_BASE_REF ?= $(RELEASE_TAG) # PULL_BASE_REF will be provided by Prow
 RELEASE_ALIAS_TAG ?= $(PULL_BASE_REF)
 RELEASE_DIR := out
 
-TAG ?= $(shell date +'%Y%m%d')
+TAG ?= v0.6.2-spectro-${SPECTRO_VERSION}
 ARCH ?= amd64
-ALL_ARCH ?= amd64 arm arm64 ppc64le s390x
+#ALL_ARCH ?= amd64 arm arm64 ppc64le s390x
 
 # main controller
 IMAGE_NAME ?= capi-openstack-controller
-CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
+CONTROLLER_IMG ?= $(REGISTRY)-$(ARCH)/$(IMAGE_NAME)
 CONTROLLER_IMG_TAG ?= $(CONTROLLER_IMG):$(TAG)
 CONTROLLER_ORIGINAL_IMG := gcr.io/k8s-staging-capi-openstack/capi-openstack-controller
 CONTROLLER_NAME := capo-controller-manager
@@ -254,7 +259,7 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 
 .PHONY: docker-build
 docker-build: docker-pull-prerequisites ## Build the docker image for controller-manager
-	docker build -f $(CONTAINERFILE) --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg LDFLAGS="$(LDFLAGS)" . -t $(CONTROLLER_IMG_TAG)
+	docker build -f $(CONTAINERFILE) --build-arg CRYPTO_LIB=${FIPS_ENABLE} --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg LDFLAGS="$(LDFLAGS)" . -t $(CONTROLLER_IMG_TAG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
