@@ -100,7 +100,7 @@ ARCH ?= amd64
 
 # main controller
 IMAGE_NAME ?= capi-openstack-controller
-CONTROLLER_IMG ?= $(REGISTRY)-$(ARCH)/$(IMAGE_NAME)
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)-$(ARCH)
 CONTROLLER_IMG_TAG ?= $(CONTROLLER_IMG):$(TAG)
 CONTROLLER_ORIGINAL_IMG := gcr.io/k8s-staging-capi-openstack/capi-openstack-controller
 CONTROLLER_NAME := capo-controller-manager
