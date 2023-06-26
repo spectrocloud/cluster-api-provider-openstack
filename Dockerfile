@@ -43,12 +43,11 @@ ARG ARCH
 ARG ldflags
 
 # Do not force rebuild of up-to-date packages (do not use -a) and use the compiler cache folder
-RUN if [ "${CRYPTO_LIB}" ]; then
-     CGO_ENABLED=1 -e GOOS=linux -e GOARCH=amd64 -e GO111MODULE=on \
-     go build -ldflags "-linkmode=external -extldflags=-static" -a -o manager "${package}"   
-    else
-     CGO_ENABLED=0 -e GOOS=linux -e GOARCH="${ARCH}" \
-     go build -ldflags "${ldflags} -extldflags '-static'" -o manager "${package}"
+RUN  if [ "${CRYPTO_LIB}" ]; \
+      then \
+        CGO_ENABLED=1  GOOS=linux  GOARCH=amd64 GO111MODULE=on go build -ldflags "-linkmode=external -extldflags=-static" -a -o manager "${package}" ; \  
+      else
+        CGO_ENABLED=0 GOOS=linux GOARCH="${ARCH}" go build -ldflags "${ldflags} -extldflags -static" -o manager "${package}" ; \
     fi
 
 
