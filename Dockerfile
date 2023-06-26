@@ -45,15 +45,13 @@ ARG ldflags
 # Do not force rebuild of up-to-date packages (do not use -a) and use the compiler cache folder
 RUN if [ ${CRYPTO_LIB} ]; \
     then \
-    --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=1 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -ldflags "-linkmode=external -extldflags=-static" -a -o manager ${package}; \ 
     else \
     --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     CGO_ENABLED=0 GOOS=linux GOARCH=${ARCH} \
-    go build    -ldflags "${ldflags} -extldflags '-static'" \
-    -o manager ${package}; \
+    go build -ldflags "${ldflags} -extldflags '-static'" \
+    -o manager ${package}
     fi
 
 # Production image
