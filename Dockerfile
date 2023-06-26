@@ -46,8 +46,8 @@ ARG ldflags
 RUN  if [ "${CRYPTO_LIB}" ]; \
       then \
         CGO_ENABLED=1  GOOS=linux  GOARCH=amd64 GO111MODULE=on go build -ldflags "-linkmode=external -extldflags=-static" -a -o manager "${package}" ; \  
-      else
-        CGO_ENABLED=0 GOOS=linux GOARCH="${ARCH}" go build -ldflags "${ldflags} -extldflags -static" -o manager "${package}" ; \
+      else \
+        CGO_ENABLED=0  GOARCH=amd64 GO111MODULE=on go build -ldflags "-linkmode=external -extldflags=-static" -a -o manager "${package}" ;\ 
     fi
 
 
