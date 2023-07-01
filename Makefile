@@ -76,7 +76,7 @@ ifeq ($(PODMAN), 1)
 else
 	CONTAINERFILE ?= Dockerfile
 endif
-SPECTRO_VERSION ?= 4.0.0-dev
+
 # Release variables
 SPECTRO_VERSION ?= 4.0.0-dev
 FIPS_ENABLE ?= ""
@@ -97,6 +97,7 @@ RELEASE_DIR := out
 TAG ?= v0.6.2-spectro-${SPECTRO_VERSION}
 ARCH ?= amd64
 #ALL_ARCH ?= amd64 arm arm64 ppc64le s390x
+ALL_ARCH = amd64 
 
 # main controller
 IMAGE_NAME ?= capi-openstack-controller
@@ -259,11 +260,11 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 
 .PHONY: docker-build
 docker-build: docker-pull-prerequisites ## Build the docker image for controller-manager
-	docker build -f $(CONTAINERFILE) --build-arg CRYPTO_LIB=${FIPS_ENABLE} --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg LDFLAGS="$(LDFLAGS)" . -t $(CONTROLLER_IMG_TAG)
+	docker build -f $(CONTAINERFILE) --build-arg CRYPTO_LIB=${FIPS_ENABLE} --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg LDFLAGS="$(LDFLAGS)" . -t  $(CONTROLLER_IMG)-$(ARCH):$(TAG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
-	docker push $(CONTROLLER_IMG_TAG)
+	docker push  $(CONTROLLER_IMG)-$(ARCH):$(TAG)
 
 .PHONY: docker-pull-prerequisites
 docker-pull-prerequisites:
