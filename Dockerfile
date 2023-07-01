@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # Build the manager binary
-FROM golang:1.19.8 as builder
+FROM golang:1.19.10-alpine3.18 as builder
 WORKDIR /workspace
 
 ARG CRYPTO_LIB
@@ -24,6 +24,9 @@ ENV GOEXPERIMENT=${CRYPTO_LIB:+boringcrypto}
 # Run this with docker build --build_arg goproxy=$(go env GOPROXY) to override the goproxy
 ARG goproxy=https://proxy.golang.org
 ENV GOPROXY=$goproxy
+
+RUN apk update
+RUN apk add git gcc g++ curl
 
 # Copy the Go Modules manifests
 COPY go.mod go.mod
@@ -45,10 +48,10 @@ ARG ldflags
 # Do not force rebuild of up-to-date packages (do not use -a) and use the compiler cache folder
 RUN  if [ "${CRYPTO_LIB}" ]; \
       then \
-        CGO_ENABLED=1  GOOS=linux  GOARCH=amd64 GO111MODULE=on go build -ldflags "-linkmode=external -extldflags=-static" -a -o manager "${package}" ; \  
+        CGO_ENABLED=1 GOOS=linux  GOARCH=${ARCH}  GO111MODULE=on go build -ldflags  "-linkmode=external  -extldflags '-static'" -a -o manager ${package}; \
       else \
-        CGO_ENABLED=0  GOARCH=amd64 GO111MODULE=on go build -ldflags "-linkmode=external -extldflags=-static" -a -o manager "${package}" ;\ 
-    fi
+        CGO_ENABLED=0  GOARCH=amd64 GO111MODULE=on go build -ldflags "-extldflags=-static" -a -o manager "${package}" ;\ 
+      fi
 
 
 # Production image

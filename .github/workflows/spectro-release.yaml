@@ -1,5 +1,5 @@
 name: Spectro Release
-run-name: Release for Cluster API openstack ${{ github.event.inputs.release_version }}
+run-name: Release for Cluster API Openstack ${{ github.event.inputs.release_version }}
 on:
   workflow_dispatch:
     inputs:
@@ -43,16 +43,16 @@ jobs:
         env:
           REGISTRY: gcr.io/spectro-images-public/release/cluster-api-openstack
         run: |
-          make docker-build
-          make docker-push
+          make docker-build-all
+          make docker-push-all
       -
         name: Build Image - FIPS Mode
         env:
           FIPS_ENABLE: yes
           REGISTRY: gcr.io/spectro-images-public/release-fips/cluster-api-openstack
         run: |
-          make docker-build
-          make docker-push
+          make docker-build-all
+          make docker-push-all
       -
         name: Create Release
         id: create_release
