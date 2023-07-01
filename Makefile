@@ -85,7 +85,7 @@ RELEASE_LOC := release
 ifeq ($(FIPS_ENABLE),yes)
   RELEASE_LOC := release-fips
 endif
-REGISTRY := gcr.io/spectro-dev-public/${RELEASE_LOC}
+REGISTRY ?= gcr.io/spectro-dev-public/$(USER)/${RELEASE_LOC}
 STAGING_BUCKET ?= artifacts.k8s-staging-capi-openstack.appspot.com
 BUCKET ?= $(STAGING_BUCKET)
 PROD_REGISTRY ?= k8s.gcr.io/capi-openstack
