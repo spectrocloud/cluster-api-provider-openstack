@@ -78,6 +78,7 @@ else
 endif
 SPECTRO_VERSION ?= 4.0.0-dev
 # Release variables
+SPECTRO_VERSION ?= 4.0.0-dev
 FIPS_ENABLE ?= ""
 
 RELEASE_LOC := release
