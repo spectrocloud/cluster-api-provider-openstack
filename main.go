@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"flag"
 	"fmt"
 	"net/http"
@@ -47,9 +48,15 @@ import (
 	"sigs.k8s.io/cluster-api-provider-openstack/version"
 )
 
+type TLSOptions struct {
+	TLSMinVersion   string
+	TLSCipherSuites []string
+}
+
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme     = runtime.NewScheme()
+	setupLog   = ctrl.Log.WithName("setup")
+	tlsOptions = TLSOptions{}
 
 	// flags.
 	metricsBindAddr             string
@@ -151,6 +158,12 @@ func main() {
 		setupLog.Error(err, "unable to get kubeconfig")
 	}
 
+	tlsOptionOverrides, err := GetTLSOptionOverrideFuncs(tlsOptions)
+	if err != nil {
+		setupLog.Error(err, "unable to add TLS settings to the webhook server")
+		os.Exit(1)
+	}
+
 	mgr, err := ctrl.NewManager(cfg, ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsBindAddr,
@@ -168,6 +181,7 @@ func main() {
 		Port:                   webhookPort,
 		CertDir:                webhookCertDir,
 		HealthProbeBindAddress: healthAddr,
+		TLSOpts:                tlsOptionOverrides,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -192,6 +206,32 @@ func main() {
 	if err := mgr.Start(ctx); err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
+	}
+}
+
+// GetTLSOptionOverrideFuncs returns a list of TLS configuration overrides to be used
+// by the webhook server.
+func GetTLSOptionOverrideFuncs(options TLSOptions) ([]func(*tls.Config), error) {
+	var tlsOptions []func(config *tls.Config)
+	tlsVersion, err := cliflag.TLSVersion(options.TLSMinVersion)
+	if err != nil {
+		return nil, err
+	}
+	tlsOptions = append(tlsOptions, func(cfg *tls.Config) {
+		cfg.MinVersion = tlsVersion
+		cfg.CipherSuites = GetDefaultTLSCipherSuits()
+		cfg.MaxVersion = tlsVersion
+	})
+
+	return tlsOptions, nil
+}
+
+func GetDefaultTLSCipherSuits() []uint16 {
+	return []uint16{
+		tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+		tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 	}
 }
 
