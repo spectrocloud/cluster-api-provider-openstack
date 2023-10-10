@@ -37,8 +37,8 @@ jobs:
       -
         if: ${{ github.event.inputs.rel_type == 'rc' }}
         run: |
-          echo "LEGACY_REGISTRY=gcr.io/spectro-dev-public/release/cluster-api-gcp" >> $GITHUB_ENV
-          echo "FIPS_REGISTRY=gcr.io/spectro-dev-public/release-fips/cluster-api-gcp" >> $GITHUB_ENV
+          echo "LEGACY_REGISTRY=gcr.io/spectro-dev-public/release/cluster-api-openstack" >> $GITHUB_ENV
+          echo "FIPS_REGISTRY=gcr.io/spectro-dev-public/release-fips/cluster-api-openstack" >> $GITHUB_ENV
       -
         uses: actions/checkout@v3
       -
