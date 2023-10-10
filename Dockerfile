@@ -15,8 +15,9 @@
 # limitations under the License.
 
 # Build the manager binary
-FROM golang:1.19.10-alpine3.18 as builder
-WORKDIR /workspace
+ARG BUILDER_GOLANG_VERSION
+# First stage: build the executable.
+FROM --platform=$TARGETPLATFORM gcr.io/spectro-images-public/golang:${BUILDER_GOLANG_VERSION}-alpine as toolchain
 
 ARG CRYPTO_LIB
 ENV GOEXPERIMENT=${CRYPTO_LIB:+boringcrypto}
@@ -24,6 +25,9 @@ ENV GOEXPERIMENT=${CRYPTO_LIB:+boringcrypto}
 # Run this with docker build --build_arg goproxy=$(go env GOPROXY) to override the goproxy
 ARG goproxy=https://proxy.golang.org
 ENV GOPROXY=$goproxy
+
+FROM toolchain as builder
+WORKDIR /workspace
 
 RUN apk update
 RUN apk add git gcc g++ curl
@@ -34,8 +38,9 @@ COPY go.sum go.sum
 
 # Cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
-RUN --mount=type=cache,target=/go/pkg/mod \
-    go mod download
+RUN  --mount=type=cache,target=/root/.local/share/golang \
+     --mount=type=cache,target=/go/pkg/mod \
+     go mod download
 
 # Copy the sources
 COPY ./ ./
@@ -46,16 +51,23 @@ ARG ARCH
 ARG ldflags
 
 # Do not force rebuild of up-to-date packages (do not use -a) and use the compiler cache folder
-RUN  if [ "${CRYPTO_LIB}" ]; \
-      then \
-        CGO_ENABLED=1 GOOS=linux  GOARCH=${ARCH}  GO111MODULE=on go build -ldflags  "-linkmode=external  -extldflags '-static'" -a -o manager ${package}; \
-      else \
-        CGO_ENABLED=0  GOARCH=amd64 GO111MODULE=on go build -ldflags "-extldflags=-static" -a -o manager "${package}" ;\ 
-      fi
+RUN  --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.local/share/golang \
+    if [ ${CRYPTO_LIB} ];\
+     then \
+        GOARCH=${ARCH} go-build-fips.sh -a -o manager . ;\
+     else \
+        GOARCH=${ARCH} go-build-static.sh -a -o manager . ;\
+     fi
+
+RUN if [ "${CRYPTO_LIB}" ]; then assert-static.sh manager; fi
+RUN if [ "${CRYPTO_LIB}" ]; then assert-fips.sh manager; fi
+RUN scan-govulncheck.sh manager
 
 
 # Production image
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/static:latest
 WORKDIR /
 COPY --from=builder /workspace/manager .
 # Use uid of nonroot user (65532) because kubernetes expects numeric user when applying pod security policies
