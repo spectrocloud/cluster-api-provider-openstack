@@ -80,6 +80,8 @@ endif
 # Release variables
 SPECTRO_VERSION ?= 4.0.0-dev
 FIPS_ENABLE ?= ""
+BUILDER_GOLANG_VERSION ?= 1.21
+BUILD_ARGS = --build-arg CRYPTO_LIB=${FIPS_ENABLE} --build-arg BUILDER_GOLANG_VERSION=${BUILDER_GOLANG_VERSION}
 
 RELEASE_LOC := release
 ifeq ($(FIPS_ENABLE),yes)
@@ -97,7 +99,7 @@ RELEASE_DIR := out
 TAG ?= v0.6.2-spectro-${SPECTRO_VERSION}
 ARCH ?= amd64
 #ALL_ARCH ?= amd64 arm arm64 ppc64le s390x
-ALL_ARCH = amd64 
+ALL_ARCH = amd64 arm64
 
 # main controller
 IMAGE_NAME ?= capi-openstack-controller
@@ -260,7 +262,7 @@ generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 
 .PHONY: docker-build
 docker-build: docker-pull-prerequisites ## Build the docker image for controller-manager
-	docker build -f $(CONTAINERFILE) --build-arg CRYPTO_LIB=${FIPS_ENABLE} --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg LDFLAGS="$(LDFLAGS)" . -t  $(CONTROLLER_IMG)-$(ARCH):$(TAG)
+	docker buildx build --load --platform linux/${ARCH} ${BUILD_ARGS}  --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH)  --build-arg  LDFLAGS="$(LDFLAGS)" . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
 
 .PHONY: docker-push
 docker-push: ## Push the docker image
