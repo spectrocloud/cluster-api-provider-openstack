@@ -1,6 +1,8 @@
 module sigs.k8s.io/cluster-api-provider-openstack
 
-go 1.21
+go 1.22
+
+toolchain go1.22.2
 
 require (
 	github.com/go-logr/logr v1.2.3
@@ -110,7 +112,6 @@ require (
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
-
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
